@@ -90,20 +90,20 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
                                         pinp_num(paste_int(row = edge[,1]+1, col = edge[,2]-1), row_col) &
                                         pinp_num(paste_int(row = edge[,1], col = edge[,2]-1), row_col) &
                                         pinp_num(paste_int(row = edge[,1]-1, col = edge[,2]-1), row_col), 0, 1))
-    edge <- edge[edge[,3]==1,1:2]
+    edge <- matrix(edge[edge[,3]==1,1:2], ncol = 2, dimnames = list(NULL, c("row", "col")))
 
     #Calculate edge of edge points
     row_col <- paste_int(row = edge[,1], col = edge[,2])
 
     buffer_all_points_col <- !(pinp_num(row_col, paste_int(row = edge[,1], col = edge[,2]+1)))
     row_col_rev <- row_col[buffer_all_points_col]
-    edge_buffer_all_points <- edge[buffer_all_points_col,]
+    edge_buffer_all_points <- matrix(edge[buffer_all_points_col,], ncol = 2, dimnames = list(NULL, c("row", "col")))
 
     buffer_all_points_row <- !(pinp_num(row_col_rev, paste_int(row = edge_buffer_all_points[,1]+1, col = edge_buffer_all_points[,2])))
     row_col_rev <- row_col_rev[buffer_all_points_row]
-    edge_buffer_all_points <- edge_buffer_all_points[buffer_all_points_row,]
+    edge_buffer_all_points <- matrix(edge_buffer_all_points[buffer_all_points_row,], ncol = 2, dimnames = list(NULL, c("row", "col")))
 
-    edge_buffer_edge_points <- edge[!(pinp_num(row_col, row_col_rev)),]
+    edge_buffer_edge_points <- matrix(edge[!(pinp_num(row_col, row_col_rev)),], ncol = 2, dimnames = list(NULL, c("row", "col")))
 
     rm(row_col, row_col_rev, edge, buffer_all_points_col, buffer_all_points_row)
   }
@@ -231,7 +231,7 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
   if (nrow(edge_buffer_edge_points)>0) {
     for (i in 1:ceiling(nrow(edge_buffer_edge_points)/edge_size)) {
 
-      edge_temp <- edge_buffer_edge_points[(i*edge_size-edge_size+1):min(nrow(edge_buffer_edge_points), edge_size*i),]
+      edge_temp <- matrix(edge_buffer_edge_points[(i*edge_size-edge_size+1):min(nrow(edge_buffer_edge_points), edge_size*i),], ncol = 2, dimnames = list(NULL, c("row", "col")))
 
       gc()
 
