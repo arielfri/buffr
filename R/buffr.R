@@ -91,6 +91,18 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
                                         pinp_num(paste_int(row = edge[,1], col = edge[,2]-1), row_col) &
                                         pinp_num(paste_int(row = edge[,1]-1, col = edge[,2]-1), row_col), 0, 1))
     edge <- matrix(edge[edge[,3]==1,1:2], ncol = 2, dimnames = list(NULL, c("row", "col")))
+    # #can replace previous 3 lines with the following 3:
+    # edge_intersect <- Reduce(dplyr::intersect, list(data.frame(row = edge[,1], col = edge[,2]),
+    #                                                 data.frame(row = edge[,1]+1, col = edge[,2]+1),
+    #                                                 data.frame(row = edge[,1], col = edge[,2]+1),
+    #                                                 data.frame(row = edge[,1]-1, col = edge[,2]+1),
+    #                                                 data.frame(row = edge[,1]+1, col = edge[,2]),
+    #                                                 data.frame(row = edge[,1]-1, col = edge[,2]),
+    #                                                 data.frame(row = edge[,1]+1, col = edge[,2]-1),
+    #                                                 data.frame(row = edge[,1], col = edge[,2]-1),
+    #                                                 data.frame(row = edge[,1]-1, col = edge[,2]-1)))
+    # edge <- as.matrix(dplyr::setdiff(data.frame(row = edge[,1], col = edge[,2]), edge_intersect))
+    # rm(edge_intersect)
 
     #Calculate edge of edge points
     row_col <- paste_int(row = edge[,1], col = edge[,2])
@@ -127,17 +139,37 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
                                                                            pinp_num(paste_int(row = buffer_around_shifted_coord[,1], col = buffer_around_shifted_coord[,2]-1), row_col) &
                                                                            pinp_num(paste_int(row = buffer_around_shifted_coord[,1]-1, col = buffer_around_shifted_coord[,2]-1), row_col), 0, 1))
   buffer_around_edge <- buffer_around_edge[buffer_around_edge[,3]==1,1:2]
+  # #can replace previous 3 lines with the following 3:
+  # buffer_around_edge_intersect <- Reduce(dplyr::intersect, list(data.frame(row = buffer_around_shifted_coord[,1], col = buffer_around_shifted_coord[,2]),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]+1, col = buffer_around_shifted_coord[,2]+1),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1], col = buffer_around_shifted_coord[,2]+1),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]-1, col = buffer_around_shifted_coord[,2]+1),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]+1, col = buffer_around_shifted_coord[,2]),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]-1, col = buffer_around_shifted_coord[,2]),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]+1, col = buffer_around_shifted_coord[,2]-1),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1], col = buffer_around_shifted_coord[,2]-1),
+  #                                                               data.frame(row = buffer_around_shifted_coord[,1]-1, col = buffer_around_shifted_coord[,2]-1)))
+  # buffer_around_edge <- as.matrix(dplyr::setdiff(data.frame(row = buffer_around_shifted_coord[,1], col = buffer_around_shifted_coord[,2]), buffer_around_edge_intersect))
+  # rm(buffer_around_edge_intersect)
   buffer_around_edge <- cbind(Var1 = buffer_around_edge[,1]-(abs(min(buffer_around[,1]))+1), Var2 = buffer_around_edge[,2]-(abs(min(buffer_around[,2]))+1))
 
   #RLE for all buffer points
   buffer_around_shifted_mat <- matrix(0, nrow = max(buffer_around_shifted_coord[,1]), ncol = max(buffer_around_shifted_coord[,2]))
   buffer_around_shifted_mat[buffer_around_shifted_coord] <- 1
-  run_encoded <- rle(as.integer(buffer_around_shifted_mat))
-  w <- which(run_encoded$values==1)
-  run_encoded$lengths[w+1] <- run_encoded$lengths[w+1]+run_encoded$lengths[w]-1
-  run_encoded$values[w] <- run_encoded$lengths[w]
-  run_encoded$lengths[w] <- 1
-  buffer_around_shifted_mat <- matrix(inverse.rle(run_encoded), nrow = max(buffer_around_shifted_coord[,1]), ncol = max(buffer_around_shifted_coord[,2]))
+  rle_by_col <- function(col) {
+    run_encoded <- rle(as.integer(col))
+    w <- which(run_encoded$values==1)
+    if (w>1) {
+      run_encoded$lengths[w+1] <- run_encoded$lengths[w+1]+run_encoded$lengths[w]-1
+    } else {
+      run_encoded$lengths[w+1] <- run_encoded$lengths[w]-1
+      run_encoded$values[w+1] <- 0
+    }
+    run_encoded$values[w] <- run_encoded$lengths[w]
+    run_encoded$lengths[w] <- 1
+    return(inverse.rle(run_encoded))
+  }
+  buffer_around_shifted_mat <- sapply(as.data.frame(buffer_around_shifted_mat), FUN = rle_by_col)
   rle_coord <- which(as.array(buffer_around_shifted_mat>0), arr.ind = TRUE)
   buffer_around_rle <- cbind(rle_coord, values = buffer_around_shifted_mat[rle_coord])
   buffer_around_rle[,1] <- buffer_around_rle[,1]-(abs(min(buffer_around[,1]))+1)
