@@ -71,6 +71,7 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
 
   if (mask==TRUE) {
     a <- matrix(data = mask_value, nrow = dim(r)[1], ncol = dim(r)[2])
+    a[edge] <- target_value
   }
 
   if (nrow(edge)==0) {
@@ -156,26 +157,14 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
   #RLE for all buffer points
   buffer_around_shifted_mat <- matrix(0, nrow = max(buffer_around_shifted_coord[,1]), ncol = max(buffer_around_shifted_coord[,2]))
   buffer_around_shifted_mat[buffer_around_shifted_coord] <- 1
-  rle_by_col <- function(col) {
-    run_encoded <- rle(as.integer(col))
-    w <- which(run_encoded$values==1)
-    if (w>1) {
-      run_encoded$lengths[w+1] <- run_encoded$lengths[w+1]+run_encoded$lengths[w]-1
-    } else {
-      run_encoded$lengths[w+1] <- run_encoded$lengths[w]-1
-      run_encoded$values[w+1] <- 0
-    }
-    run_encoded$values[w] <- run_encoded$lengths[w]
-    run_encoded$lengths[w] <- 1
-    return(inverse.rle(run_encoded))
-  }
+
   buffer_around_shifted_mat <- sapply(as.data.frame(buffer_around_shifted_mat), FUN = rle_by_col)
   rle_coord <- which(as.array(buffer_around_shifted_mat>0), arr.ind = TRUE)
   buffer_around_rle <- cbind(rle_coord, values = buffer_around_shifted_mat[rle_coord])
   buffer_around_rle[,1] <- buffer_around_rle[,1]-(abs(min(buffer_around[,1]))+1)
   buffer_around_rle[,2] <- buffer_around_rle[,2]-(abs(min(buffer_around[,2]))+1)
 
-  rm(buffer_around_shifted_coord, buffer_around_shifted_mat, run_encoded, w, rle_coord, row_col)
+  rm(buffer_around_shifted_coord, buffer_around_shifted_mat, rle_coord, row_col)
 
   if (verbose==TRUE) {cat("Starting Part 1 of 3\n")}
 
@@ -270,7 +259,7 @@ buffr <- function (r, distance, units = "geographic", target_value = 1, mask = T
       added_buffer <- expand_gridC_2(vec1_1 = edge_temp[,1], vec1_2 = edge_temp[,2], vec2_1 = buffer_around_edge[,1], vec2_2 = buffer_around_edge[,2])
 
       added_buffer <- rowSumsC(added_buffer)
-      added_buffer <- added_buffer[f1(mat = added_buffer, max_row = nrow(a)),]
+      added_buffer <- added_buffer[f1(mat = added_buffer, max_row = nrow(a), max_col = ncol(a)),]
       a[added_buffer] <- target_value
 
       rm(edge_temp, added_buffer)

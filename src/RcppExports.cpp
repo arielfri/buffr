@@ -52,14 +52,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // f1
-LogicalVector f1(IntegerMatrix mat, int max_row);
-RcppExport SEXP _buffr_f1(SEXP matSEXP, SEXP max_rowSEXP) {
+LogicalVector f1(IntegerMatrix mat, int max_row, int max_col);
+RcppExport SEXP _buffr_f1(SEXP matSEXP, SEXP max_rowSEXP, SEXP max_colSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerMatrix >::type mat(matSEXP);
     Rcpp::traits::input_parameter< int >::type max_row(max_rowSEXP);
-    rcpp_result_gen = Rcpp::wrap(f1(mat, max_row));
+    Rcpp::traits::input_parameter< int >::type max_col(max_colSEXP);
+    rcpp_result_gen = Rcpp::wrap(f1(mat, max_row, max_col));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -117,7 +118,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_buffr_paste_int", (DL_FUNC) &_buffr_paste_int, 2},
     {"_buffr_dupe", (DL_FUNC) &_buffr_dupe, 1},
     {"_buffr_rowSumsC", (DL_FUNC) &_buffr_rowSumsC, 1},
-    {"_buffr_f1", (DL_FUNC) &_buffr_f1, 2},
+    {"_buffr_f1", (DL_FUNC) &_buffr_f1, 3},
     {"_buffr_f2", (DL_FUNC) &_buffr_f2, 2},
     {"_buffr_f3", (DL_FUNC) &_buffr_f3, 1},
     {"_buffr_f4", (DL_FUNC) &_buffr_f4, 1},

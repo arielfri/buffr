@@ -41,11 +41,11 @@ IntegerMatrix rowSumsC(IntegerMatrix mat) {
 }
 
 // [[Rcpp::export]]
-LogicalVector f1(IntegerMatrix mat, int max_row) {
+LogicalVector f1(IntegerMatrix mat, int max_row, int max_col) {
   int n = mat.nrow();
   LogicalVector out(n);
   for (int i = 0; i < n; ++i) {
-    if (mat(i,0)>0 & mat(i,0)<=max_row & mat(i,1)>0 & mat(i,1)<=max_row) {
+    if (mat(i,0)>0 & mat(i,0)<=max_row & mat(i,1)>0 & mat(i,1)<=max_col) {
       out(i) = TRUE;
     } else {
       out(i) = FALSE;

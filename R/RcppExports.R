@@ -17,8 +17,8 @@ rowSumsC <- function(mat) {
     .Call('_buffr_rowSumsC', PACKAGE = 'buffr', mat)
 }
 
-f1 <- function(mat, max_row) {
-    .Call('_buffr_f1', PACKAGE = 'buffr', mat, max_row)
+f1 <- function(mat, max_row, max_col) {
+    .Call('_buffr_f1', PACKAGE = 'buffr', mat, max_row, max_col)
 }
 
 f2 <- function(mat, max_col) {
